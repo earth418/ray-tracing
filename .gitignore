@@ -31,5 +31,8 @@
 *.out
 *.app
 
+# Images
+*.ppm
+
 # Visual Studio Code
 .vscode/*
