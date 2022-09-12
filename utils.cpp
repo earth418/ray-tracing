@@ -130,6 +130,12 @@ struct Quat {
 };
 
 struct RayIntersectInfo {
+
+    RayIntersectInfo() {
+        distance = INFINITY;
+        intersectPoint = Vec3(0.0), planeNormal = Vec3(0.0);
+    }
+
     float distance;
     Vec3 intersectPoint;
     Vec3 planeNormal;
@@ -149,7 +155,7 @@ public:
 
     }
 
-    virtual RayIntersectInfo RayObjectIntersect(Vec3 rayOrigin, Vec3 rayDirection) {return RayIntersectInfo{};};
+    virtual bool RayObjectIntersect(Vec3 rayOrigin, Vec3 rayDirection, RayIntersectInfo& info) = 0;
 
     // virtual Vec3 NormalAtPoint(Vec3 P);
 
@@ -183,22 +189,31 @@ struct Sphere : SceneObject {
 
     float radius;
 
-    RayIntersectInfo RayObjectIntersect(Vec3 rayOrigin, Vec3 rayDirection) override {
+    bool RayObjectIntersect(Vec3 rayOrigin, Vec3 rayDirection, RayIntersectInfo& info) override {
         Vec3 vc = rayOrigin - position;
         float b = 2.0 * rayDirection.dot(vc), 
         c = vc.dot(vc) - radius * radius;
 
         float disc = b * b - 4 * c;
 
-        if (disc < 0)
-            return RayIntersectInfo{INFINITY, Vec3(0.0), Vec3(0.0)};
+        // std::cout << disc << '\n';
+
+        if (disc < 0) {
+            info = RayIntersectInfo();
+            return false; // {INFINITY, Vec3(0.0), Vec3(0.0)};
+        }
         
         float r0 = (-b - sqrt(disc)) * 0.5;
         float r1 = (-b + sqrt(disc)) * 0.5;
 
+        
+        // std::cout << r0 << ' ' << r1 << '\n';
+
         if (r0 < 1.0) {
-            if (r1 < 1.0)
-                return RayIntersectInfo{INFINITY, Vec3(0.0), Vec3(0.0)};
+            if (r1 < 1.0) {
+                info = RayIntersectInfo();
+                return false;
+            }
             
             r0 = INFINITY; // Force other collision point
         }
@@ -206,18 +221,18 @@ struct Sphere : SceneObject {
         if (r1 < 1.0)
             r1 = INFINITY; // Force other collision point
 
-        RayIntersectInfo r{};
-        r.distance = min(r0, r1);
-        r.intersectPoint = rayOrigin + r.distance * rayDirection;
-        r.planeNormal = (r.intersectPoint - position) / radius;
-        return r;
+        info = RayIntersectInfo();
+        info.distance = min(r0, r1);
+        info.intersectPoint = rayOrigin + info.distance * rayDirection;
+        info.planeNormal = (info.intersectPoint - position) / radius;
+        return true;
     }
 
 };
 
 struct World {
 
-    std::vector<SceneObject> objects;
+    std::vector<SceneObject*> objects;
 
     Vec3 lightDirection;
 

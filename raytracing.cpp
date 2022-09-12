@@ -22,17 +22,17 @@
 
 Vec3 RayTrace(World* world, Vec3 rayOrigin, Vec3 rayDireciton) {
 
-    SceneObject closest_object{};
-    RayIntersectInfo closestIntersect{INFINITY, Vec3(0.0), Vec3(0.0)};
+    SceneObject* closest_object{};
+    RayIntersectInfo closestIntersect{};
 
-    for (SceneObject object : world->objects) {
+    for (SceneObject* object : world->objects) {
 
-        RayIntersectInfo rayInfo = object.RayObjectIntersect(rayOrigin, rayDireciton);
+        RayIntersectInfo rayInfo{};
 
-        if (rayInfo.distance < INFINITY) {
+        if (object->RayObjectIntersect(rayOrigin, rayDireciton, rayInfo)) {
 
             if (rayInfo.distance < closestIntersect.distance) {
-                closestIntersect.distance = rayInfo.distance;
+                closestIntersect = rayInfo;
                 closest_object = object;
             }
         }
@@ -44,32 +44,33 @@ Vec3 RayTrace(World* world, Vec3 rayOrigin, Vec3 rayDireciton) {
     // Vec3 P = rayOrigin + closest_dist * rayDireciton;
     // Vec3 SphereNormal = closest_object.NormalAtPoint(P); // (P - closest_object.position) / closest_object.radius;
     float alpha = (1.0 - world->lightDirection.dot(closestIntersect.planeNormal)) * 0.5;
-    return closest_object.color;
+    return alpha * closest_object->color;
 }
 
 int main(int argc, char** argv) {
 
-    const int IMG_HEIGHT = 800;
-    const int IMG_WIDTH = 800;
+    const int IMG_HEIGHT = 400;
+    const int IMG_WIDTH = 400;
 
     World* w = new World();
-    Sphere s = Sphere(Vec3(-1.0, 0.0, 6.0), 1.0);
-    s.color = Vec3(1.0, 0.0, 0.0);
+    Sphere* s = new Sphere(Vec3(0.0, 0.0, 5.0), 1.0);
+    s->color = Vec3(0.0, 1.0, 0.0);
     w->objects.push_back(s);
 
-    s = Sphere(Vec3(-0.5, 1.0, 4.0), 0.5);
-    s.color = Vec3(0.0, 1.0, 0.0);
-    w->objects.push_back(s);
+    // s = Sphere(Vec3(-0.5, 1.0, 4.0), 0.5);
+    // s.color = Vec3(0.0, 1.0, 0.0);
+    // w->objects.push_back(s);
 
-    s = Sphere(Vec3(200.0, 0.0, 6.0), 200.0);
-    s.color = Vec3(1.0, 0.0, 1.0).normalize();
-    w->objects.push_back(s);
+    // s = Sphere(Vec3(200.0, 0.0, 6.0), 200.0);
+    // s.color = Vec3(1.0, 0.0, 1.0).normalize();
+    // w->objects.push_back(s);
 
-    w->lightDirection = Vec3(1.0, -1.0, 0.5).normalize();
+    w->lightDirection = Vec3(1.0, 0.0, 0.0).normalize();
 
     // SceneObject lightSource = SceneObject();
 
-    SceneObject camera = SceneObject(Vec3(0.5, 0.0, 0.0), Vec3());
+    // SceneObject* camera = new SceneObject(Vec3(0.0, 0.0, 0.0), Vec3());
+    Vec3 cameraPos = Vec3(0.0, 0.0, 0.0);
 
     const Vec3 lower_left = Vec3(-0.5, -0.5, 1.0);
     const Vec3 upper_right = Vec3(0.5, 0.5, 1.0);
@@ -85,13 +86,13 @@ int main(int argc, char** argv) {
             float alphay = y / (float) (IMG_HEIGHT - 1);
 
             Vec3 viewpoint_pos = lower_left + (upper_right - lower_left) * Vec3(alphax, alphay, 0);
-            Vec3 direction = viewpoint_pos - camera.position;
+            Vec3 direction = viewpoint_pos - cameraPos;
             direction = direction.normalize();
             
             // std::cout << alphax << ' ' << alphay << std::endl; 
             // std::cout << direction.x << ' ' << direction.y << ' ' << direction.z << '\n';
 
-            Vec3 color = RayTrace(w, camera.position, direction);
+            Vec3 color = RayTrace(w, cameraPos, direction);
 
             int ir = static_cast<int>(255.999 * color.x);
             int ig = static_cast<int>(255.999 * color.y);
