@@ -33,6 +33,10 @@
 
 # Images
 *.ppm
+images/*
+
+# Videos
+*.mp4
 
 # Visual Studio Code
 .vscode/*

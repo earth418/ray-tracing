@@ -3,6 +3,12 @@
 
 #define min(x, y) (x) > (y) ? (y) : (x)
 
+
+template<class T>
+T lerp(T a, T b, float alpha) {
+    return a + (b - a) * alpha;
+}
+
 float Q_rsqrt( float number )
 {
 	long i;
@@ -68,9 +74,20 @@ public:
         return dot(*this);
     }
 
-    Vec3 normalize() {
+    Vec3 normalize() const {
         return *this * Q_rsqrt(sqrLength());
     }
+
+    inline static Vec3 up() {
+        return Vec3(-1.0, 0.0, 0.0);
+    }
+    inline static Vec3 right() {
+        return Vec3(0.0, 1.0, 0.0);
+    }
+    inline static Vec3 forward() {
+        return Vec3(0.0, 0.0, 1.0);
+    }
+    
 };
 
 
@@ -111,10 +128,9 @@ struct Quat {
         w = 0.0, x = vec.x, y = vec.y, z = vec.z;
     }
 
-
     // Computes the Hamiltonian 
     // product of two Quats
-    Quat operator*(Quat o) {
+    Quat operator*(Quat o) const {
         Quat quat = Quat();
         quat.w = w * o.w - x * o.x - y * o.y - z * o.z;
         quat.x = w * o.x + x * o.w + y * o.z - z * o.y;
@@ -123,8 +139,25 @@ struct Quat {
         return quat;
     }
 
-    Quat RotateVector(Vec3 vec) {
-        return operator*(Quat(vec));
+    Quat operator*(float o) const {
+        return Quat(w * o, x * o, y * o, z * o);
+    }
+
+    Quat operator+(Quat other) const {
+        return Quat(other.w + w, other.x + x, other.y + y, other.z + z);
+    }
+
+    Quat operator-(Quat other) const {
+        return Quat(w - other.w, x - other.x, y - other.y, z - other.z);
+    }
+
+    Vec3 RotateVector(Vec3 vec) const {
+        Quat prime = Quat(w, -x, -y, -z);
+        Quat v = Quat(vec);
+        Quat result = *this * v * prime;
+
+        // Rotation * quat-Vector * Rot.inv
+        return Vec3(result.x, result.y, result.z);
     }
 
 };
@@ -155,7 +188,8 @@ public:
 
     }
 
-    virtual bool RayObjectIntersect(Vec3 rayOrigin, Vec3 rayDirection, RayIntersectInfo& info) = 0;
+    virtual bool RayObjectIntersect(Vec3 rayOrigin, Vec3 rayDirection, RayIntersectInfo& info,
+     float minDist = 1.0f, float maxDist = INFINITY) = 0;
 
     // virtual Vec3 NormalAtPoint(Vec3 P);
 
@@ -164,12 +198,6 @@ public:
     Quat rotation;
 
     Vec3 color;
-
-};
-
-struct LightSource : SceneObject {
-    
-    float intensity;
 
 };
 
@@ -189,7 +217,8 @@ struct Sphere : SceneObject {
 
     float radius;
 
-    bool RayObjectIntersect(Vec3 rayOrigin, Vec3 rayDirection, RayIntersectInfo& info) override {
+    bool RayObjectIntersect(Vec3 rayOrigin, Vec3 rayDirection, RayIntersectInfo& info, 
+    float minDist = 1.0f, float maxDist = INFINITY) override {
         Vec3 vc = rayOrigin - position;
         float b = 2.0 * rayDirection.dot(vc), 
         c = vc.dot(vc) - radius * radius;
@@ -209,17 +238,24 @@ struct Sphere : SceneObject {
         
         // std::cout << r0 << ' ' << r1 << '\n';
 
-        if (r0 < 1.0) {
-            if (r1 < 1.0) {
+        if (r0 < minDist) {
+            if (r1 < minDist) {
                 info = RayIntersectInfo();
                 return false;
             }
             
-            r0 = INFINITY; // Force other collision point
+            r0 = maxDist; // Force other collision point
         }
 
         if (r1 < 1.0)
-            r1 = INFINITY; // Force other collision point
+            r1 = maxDist; // Force other collision point
+
+
+        if (r1 >= maxDist && r0 >= maxDist) {
+            info = RayIntersectInfo();
+            return false;
+        }
+
 
         info = RayIntersectInfo();
         info.distance = min(r0, r1);
@@ -227,6 +263,16 @@ struct Sphere : SceneObject {
         info.planeNormal = (info.intersectPoint - position) / radius;
         return true;
     }
+
+};
+
+struct LightSource : Sphere {
+    
+    LightSource(float iintensity) 
+    : intensity(iintensity)
+    {}
+
+    float intensity;
 
 };
 
