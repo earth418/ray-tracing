@@ -68,8 +68,8 @@ Vec3 RayTrace(World* world, Vec3 rayOrigin, Vec3 rayDireciton) {
 
 int main(int argc, char** argv) {
 
-    const int IMG_HEIGHT = 400;
-    const int IMG_WIDTH = 400;
+    const int IMG_HEIGHT = 800;
+    const int IMG_WIDTH = 800;
 
     World* w = new World();
     // Sphere* s = new Sphere(Vec3(-1.5, 0.0, 5.0), 1.0);
@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
     // s->color = Vec3(0.0, 0.0, 1.0);
     // w->objects.push_back(s);
 
-    Sphere* gnd = new Sphere(Vec3(200.0, 0.0, 5.0), 200.0);
+    Sphere* gnd = new Sphere(Vec3(-200.0, 0.0, 5.0), 200.0);
     gnd->color = Vec3(1.0, 0.0, 1.0).normalize();
     w->objects.push_back(gnd);
 
@@ -90,11 +90,13 @@ int main(int argc, char** argv) {
     // SceneObject lightSource = SceneObject();
 
     TriMesh* t = new TriMesh();
-    t->verts.push_back(Vec3(-1.0, 0.0, 5.0));
-    t->verts.push_back(Vec3(-1.5, 0.0, 5.0));
-    t->verts.push_back(Vec3(-1.0, -0.5, 5.0));
+    t->verts.push_back(Vec3(-0.5, 0.0, 5.0));
+    t->verts.push_back(Vec3(0.5, 0.5, 5.0));
+    t->verts.push_back(Vec3(0.5, -0.5, 5.0));
+    
+    t->color = Vec3(1.0, 1.0, 0.0);
 
-    t->tris.push_back(Triangle(2, 1, 0));
+    t->tris.push_back(Triangle(0, 1, 2));
 
     w->objects.push_back(t);
 
@@ -102,10 +104,13 @@ int main(int argc, char** argv) {
     // const Vec3 viewport_lower_left = Vec3(-0.5, -0.5, 1.0);
     // const Vec3 viewport_upper_right = Vec3(0.5, 0.5, 1.0);
     char filename[23];
-    const float focal_length = 0.5;
+    const float focal_length = 0.75;
 
-
-    const int N_FRAMES = 2;
+    int N_FRAMES;
+    if (argc == 2)
+        N_FRAMES = atoi(argv[1]);
+    else
+        N_FRAMES = 1;
 
     const Quat start_rot = Quat(Vec3::up(), -30.0 * 3.14159 / 180.0);
     const Quat end_rot = Quat(Vec3::up(), -150.0 * 3.14159 / 180.0); // * Quat(Vec3::forward(), 3.14159);
@@ -138,23 +143,16 @@ int main(int argc, char** argv) {
         for (int i = 0; i < IMG_WIDTH; ++i) {
             for (int j = IMG_HEIGHT - 1; j >= 0; --j) {
 
-                float x = float(i), y = float(IMG_HEIGHT - j - 1);
+                float x = -float(i), y = -float(IMG_HEIGHT - j - 1);
 
                 float alphax = x / (float) (IMG_WIDTH - 1);
                 float alphay = y / (float) (IMG_HEIGHT - 1);
 
-                //Vec3 viewpoint_pos = viewport_lower_left + (viewport_upper_right - viewport_lower_left) * Vec3(alphax, alphay, 0);
-                // Vec3 viewpoint_pos = lerp(cameraPos - Vec3(0.5, 0.5,-focal_length), 
-                //                           cameraPos + Vec3(0.5, 0.5, focal_length), alphax)
-
                 Vec3 rel_viewpoint_pos = Vec3(-0.5 + alphax, -0.5 + alphay, focal_length);
                 rel_viewpoint_pos = rot.RotateVector(rel_viewpoint_pos);
 
-                Vec3 direction = rel_viewpoint_pos.normalize(); //  - cameraPos;
-                // direction = direction.normalize();
-                
-                // std::cout << alphax << ' ' << alphay << std::endl; 
-                // std::cout << direction.x << ' ' << direction.y << ' ' << direction.z << '\n';
+                Vec3 direction = rel_viewpoint_pos.normalize();
+            
 
                 Vec3 color = RayTrace(w, cameraPos, direction);
 

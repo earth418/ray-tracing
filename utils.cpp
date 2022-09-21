@@ -44,17 +44,17 @@ public:
         : x(ix), y(iy), z(iz)
     {}
 
-    // float& operator[](int index) {
-    //     switch (index) {
-    //         case 0: return x;
-    //         case 1: return y;
-    //         case 2: return z;
-    //     }
-    // } 
-
     float& operator[](int index) {
-        return *((float*) this + index);
-    }
+        switch (index) {
+            case 0: return x;
+            case 1: return y;
+            case 2: return z;
+        }
+    } 
+
+    // float& operator[](int index) {
+    //     return *((float*) this + index);
+    // }
 
     Vec3 operator+(Vec3 other) const {
         return Vec3(other.x + x, other.y + y, other.z + z);

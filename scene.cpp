@@ -60,10 +60,10 @@ public:
             const Vec3 N = v0v1.cross(v0v2).normalize();
 
             float t = (v0 - rayOrigin).dot(N) / rayDirection.dot(N);
-            if (t >= maxDist || t < minDist) {
-                info = RayIntersectInfo();
-                return false;
-            }
+            // if (t >= maxDist || t < minDist) {
+            //     info = RayIntersectInfo();
+            //     return false;
+            // }
 
             const Vec3 pt = rayOrigin + rayDirection * t;
 
