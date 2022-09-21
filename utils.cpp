@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include <cmath>
 
@@ -41,6 +43,18 @@ public:
     Vec3(float ix, float iy, float iz) 
         : x(ix), y(iy), z(iz)
     {}
+
+    // float& operator[](int index) {
+    //     switch (index) {
+    //         case 0: return x;
+    //         case 1: return y;
+    //         case 2: return z;
+    //     }
+    // } 
+
+    float& operator[](int index) {
+        return *((float*) this + index);
+    }
 
     Vec3 operator+(Vec3 other) const {
         return Vec3(other.x + x, other.y + y, other.z + z);
@@ -88,6 +102,35 @@ public:
         return Vec3(0.0, 0.0, 1.0);
     }
     
+    Vec3 cross(Vec3 other) const {
+        return Vec3(y * other.z - z * other.y,
+                  -(x * other.z - z * other.x),
+                    x * other.y - y * other.x);
+    }
+    
+};
+
+struct Mat3x3 {
+
+    float arr[3][3];
+
+    Mat3x3() {}
+
+    // Appends together as column vectors
+    Mat3x3(Vec3 c0, Vec3 c1, Vec3 c2) {
+        for (int i = 0; i < 3; ++i) {
+            arr[i][0] = c0[i];
+            arr[i][1] = c1[i];
+            arr[i][2] = c2[i];
+        }
+    }
+
+    float det() const {
+        return arr[0][0] * (arr[1][1] * arr[2][2] - arr[2][1] * arr[1][2])
+             - arr[0][1] * (arr[1][0] * arr[2][2] - arr[2][0] * arr[1][2])
+             + arr[0][2] * (arr[1][0] * arr[2][1] - arr[1][1] * arr[2][0]); 
+    }
+
 };
 
 
@@ -174,112 +217,14 @@ struct RayIntersectInfo {
     Vec3 planeNormal;
 };
 
-struct SceneObject {
+typedef unsigned int uint32;
 
-public:
+struct Triangle {
+    uint32 v0;
+    uint32 v1;
+    uint32 v2;
 
-    SceneObject()
-    : position(Vec3()), scale(Vec3())
+    Triangle(int t0, int t1, int t2)
+    : v0(t0), v1(t1), v2(t2)
     {}
-
-    SceneObject(Vec3 _pos, Vec3 _scale)
-    : position(_pos), scale(_scale)
-    {
-
-    }
-
-    virtual bool RayObjectIntersect(Vec3 rayOrigin, Vec3 rayDirection, RayIntersectInfo& info,
-     float minDist = 1.0f, float maxDist = INFINITY) = 0;
-
-    // virtual Vec3 NormalAtPoint(Vec3 P);
-
-    Vec3 position;
-    Vec3 scale;
-    Quat rotation;
-
-    Vec3 color;
-
-};
-
-struct Sphere : SceneObject {
-
-    Sphere()
-    : radius(0.0)
-    {
-    }
-
-    Sphere(Vec3 _pos, float radius)
-    : radius(radius)
-    {
-        this->position = _pos;
-        this->scale = Vec3(1.0);
-    }
-
-    float radius;
-
-    bool RayObjectIntersect(Vec3 rayOrigin, Vec3 rayDirection, RayIntersectInfo& info, 
-    float minDist = 1.0f, float maxDist = INFINITY) override {
-        Vec3 vc = rayOrigin - position;
-        float b = 2.0 * rayDirection.dot(vc), 
-        c = vc.dot(vc) - radius * radius;
-
-        float disc = b * b - 4 * c;
-
-        // std::cout << disc << '\n';
-
-        if (disc < 0) {
-            info = RayIntersectInfo();
-            return false; // {INFINITY, Vec3(0.0), Vec3(0.0)};
-        }
-        
-        float r0 = (-b - sqrt(disc)) * 0.5;
-        float r1 = (-b + sqrt(disc)) * 0.5;
-
-        
-        // std::cout << r0 << ' ' << r1 << '\n';
-
-        if (r0 < minDist) {
-            if (r1 < minDist) {
-                info = RayIntersectInfo();
-                return false;
-            }
-            
-            r0 = maxDist; // Force other collision point
-        }
-
-        if (r1 < 1.0)
-            r1 = maxDist; // Force other collision point
-
-
-        if (r1 >= maxDist && r0 >= maxDist) {
-            info = RayIntersectInfo();
-            return false;
-        }
-
-
-        info = RayIntersectInfo();
-        info.distance = min(r0, r1);
-        info.intersectPoint = rayOrigin + info.distance * rayDirection;
-        info.planeNormal = (info.intersectPoint - position) / radius;
-        return true;
-    }
-
-};
-
-struct LightSource : Sphere {
-    
-    LightSource(float iintensity) 
-    : intensity(iintensity)
-    {}
-
-    float intensity;
-
-};
-
-struct World {
-
-    std::vector<SceneObject*> objects;
-
-    Vec3 lightDirection;
-
 };

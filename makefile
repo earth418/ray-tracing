@@ -6,7 +6,7 @@ gen_video: clean raytrace
     images/image%04d.ppm -vcodec libx264 -crf 25  -pix_fmt yuv420p test.mp4
 
 clean:
-	rm -f ./images/*
+	rm raytrace ; rm -f ./images/*
 
 raytrace: raytracing.cpp # utils.o
 	${CC} ${CARGS} $^ -o $@
@@ -15,3 +15,7 @@ raytrace: raytracing.cpp # utils.o
 # 	${CC} ${CARGS} $^ -c $@
 
 # utils.o: utils.cpp
+# 	${CC} ${CARGS} $^ -c $@
+
+# scene.o: scene.cpp
+# 	${CC} ${CARGS} $^ -c $@

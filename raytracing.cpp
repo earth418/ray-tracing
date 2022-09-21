@@ -3,6 +3,7 @@
 // #include <string>
 
 #include "utils.cpp"
+#include "scene.cpp"
 
 // bool RaySphereIntersect(Sphere sphere, Vec3 rayOrigin, Vec3 rayDirection, float* t0, float* t1) {
 
@@ -67,40 +68,47 @@ Vec3 RayTrace(World* world, Vec3 rayOrigin, Vec3 rayDireciton) {
 
 int main(int argc, char** argv) {
 
-    const int IMG_HEIGHT = 600;
-    const int IMG_WIDTH = 600;
+    const int IMG_HEIGHT = 400;
+    const int IMG_WIDTH = 400;
 
     World* w = new World();
-    Sphere* s = new Sphere(Vec3(-1.5, 0.0, 5.0), 1.0);
-    s->color = Vec3(0.0, 1.0, 0.0);
-    w->objects.push_back(s);
+    // Sphere* s = new Sphere(Vec3(-1.5, 0.0, 5.0), 1.0);
+    // s->color = Vec3(0.0, 1.0, 0.0);
+    // w->objects.push_back(s);
 
-    s = new Sphere(Vec3(-0.5, 0.0, 6.5), 0.5);
-    s->color = Vec3(0.0, 0.0, 1.0);
-    w->objects.push_back(s);
+    // s = new Sphere(Vec3(-0.5, 0.0, 6.5), 0.5);
+    // s->color = Vec3(0.0, 0.0, 1.0);
+    // w->objects.push_back(s);
 
-    s = new Sphere(Vec3(100.0, 0.0, 5.0), 100.0);
-    s->color = Vec3(1.0, 0.0, 1.0).normalize();
-    w->objects.push_back(s);
+    Sphere* gnd = new Sphere(Vec3(200.0, 0.0, 5.0), 200.0);
+    gnd->color = Vec3(1.0, 0.0, 1.0).normalize();
+    w->objects.push_back(gnd);
 
     // Where the light is coming from
     w->lightDirection = Vec3(1.0, -0.5, 0.0).normalize();
 
     // SceneObject lightSource = SceneObject();
 
+    TriMesh* t = new TriMesh();
+    t->verts.push_back(Vec3(-1.0, 0.0, 5.0));
+    t->verts.push_back(Vec3(-1.5, 0.0, 5.0));
+    t->verts.push_back(Vec3(-1.0, -0.5, 5.0));
 
+    t->tris.push_back(Triangle(2, 1, 0));
+
+    w->objects.push_back(t);
 
 
     // const Vec3 viewport_lower_left = Vec3(-0.5, -0.5, 1.0);
     // const Vec3 viewport_upper_right = Vec3(0.5, 0.5, 1.0);
     char filename[23];
-    const float focal_length = 0.75;
+    const float focal_length = 0.5;
 
 
-    const int N_FRAMES = 240;
+    const int N_FRAMES = 2;
 
     const Quat start_rot = Quat(Vec3::up(), -30.0 * 3.14159 / 180.0);
-    const Quat end_rot = Quat(Vec3::up(), -160.0 * 3.14159 / 180.0); // * Quat(Vec3::forward(), 3.14159);
+    const Quat end_rot = Quat(Vec3::up(), -150.0 * 3.14159 / 180.0); // * Quat(Vec3::forward(), 3.14159);
     
     Quat lilRot = Quat(Vec3::up(), 8.0 * (3.14159 / (float) N_FRAMES));
 
@@ -118,8 +126,10 @@ int main(int argc, char** argv) {
         std::streambuf *coutbuf = std::cout.rdbuf(); //save old buf
         std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
 
-        Vec3 cameraPos = lerp(start_loc, end_loc, frameAlpha);
-        Quat rot = lerp(start_rot, end_rot, frameAlpha);
+        Vec3 cameraPos = Vec3(-5.0, 0.0, 0.0); // lerp(start_loc, end_loc, frameAlpha);
+        Quat rot = Quat(Vec3::up(), 0.0); // lerp(start_rot, end_rot, frameAlpha);
+
+        // w->objects[0]->scale = 1.03 * w->objects[0]->scale;
     
         w->lightDirection = lilRot.RotateVector(w->lightDirection);
 
