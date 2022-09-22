@@ -219,12 +219,15 @@ struct RayIntersectInfo {
 
 typedef unsigned int uint32;
 
-struct Triangle {
-    uint32 v0;
-    uint32 v1;
-    uint32 v2;
+struct TriangleInfo {
+    uint32 v0, v1, v2;
+    uint32 n0, n1, n2;
+    uint32 uv0, uv1, uv2;
 
-    Triangle(int t0, int t1, int t2)
+    TriangleInfo()
+    {}
+
+    TriangleInfo(int t0, int t1, int t2)
     : v0(t0), v1(t1), v2(t2)
     {}
 };

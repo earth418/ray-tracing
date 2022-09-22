@@ -69,8 +69,8 @@ Vec3 RayTrace(World* world, Vec3 rayOrigin, Vec3 rayDireciton) {
 
 int main(int argc, char** argv) {
 
-    const int IMG_HEIGHT = 1200;
-    const int IMG_WIDTH = 1200;
+    const int IMG_HEIGHT = 500;
+    const int IMG_WIDTH = 500;
 
     World* w = new World();
     // Sphere* s = new Sphere(Vec3(5.0, 0.0, 2.0), 2.0);
@@ -90,20 +90,28 @@ int main(int argc, char** argv) {
 
     // SceneObject lightSource = SceneObject();
 
-    TriMesh* t = new TriMesh();
-    t->verts.push_back(Vec3(0.0, 0.0, 3.0));
-    t->verts.push_back(Vec3(0.0, 1.5, 0.0));
-    t->verts.push_back(Vec3(0.0, -1.5, 0.0));
-    
+    TriMesh* t = new TriMesh("../cube.obj");
+    t->position = Vec3(3.0, 0.0, 1.0);
+
+    // t->verts.push_back(Vec3(0.0, 0.0, 0.0));
+    // t->verts.push_back(Vec3(0.0, 3.0, 0.0));
+    // t->verts.push_back(Vec3(0.0, 0.0, 3.0));
+    // t->verts.push_back(Vec3(0.0, 3.0, 3.0));
+
+    // t->verts.push_back(Vec3(0.0, 1.5, 0.0));
+    // t->verts.push_back(Vec3(0.0, -1.5, 0.0));
+
     t->color = Vec3(1.0, 1.0, 0.0);
 
-    t->tris.push_back(Triangle(0, 1, 2));
+    // t->tris.push_back(TriangleInfo(2, 1, 0));
+    // t->tris.push_back(TriangleInfo(2, 3, 1));
 
     w->objects.push_back(t);
 
 
     // const Vec3 viewport_lower_left = Vec3(-0.5, -0.5, 1.0);
     // const Vec3 viewport_upper_right = Vec3(0.5, 0.5, 1.0);
+
     char filename[23];
     const float focal_length = 0.75;
 
@@ -131,22 +139,22 @@ int main(int argc, char** argv) {
 
         // Create the image file for this frame
         sprintf(filename, "./images/image%04d.ppm", frame);
-        // fprintf();
-        std::ofstream out(filename); // std::format("./images/image{frame:4d}.ppm"));
-        // std::streambuf *coutbuf = std::cout.rdbuf(); //save old buf
-        std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
 
-        // Vec3 cameraPos = Vec3(5.0 * sin(pi * frameAlpha), 5.0 * -cos(pi * frameAlpha), 2.0); // lerp(start_loc, end_loc, frameAlpha);
-        // Vec3 cameraPos
+        std::ofstream imgout(filename); // std::format("./images/image{frame:4d}.ppm"));
+
+        // std::streambuf *coutbuf = std::cout.rdbuf(); //save old buf
+        // std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
+
         // Quat rot = Quat(Vec3::up(), 0.0); // lerp(start_rot, end_rot, frameAlpha); 
+
         Quat rot = Quat(Vec3::up(), pi * 2.0 * frameAlpha); 
-        Vec3 cameraPos = rot.RotateVector(Vec3(-8.0, 0.0, 2.0));
+        Vec3 cameraPos = rot.RotateVector(Vec3(-5.0, 0.0, 1.0));
 
         // w->objects[0]->scale = 1.03 * w->objects[0]->scale;
     
-        w->lightDirection = lilRot.RotateVector(w->lightDirection);
+        // w->lightDirection = lilRot.RotateVector(w->lightDirection);
 
-        std::cout << "P3\n" << IMG_WIDTH << ' ' << IMG_HEIGHT << "\n255\n";
+        imgout << "P3\n" << IMG_WIDTH << ' ' << IMG_HEIGHT << "\n255\n";
 
         for (int i = 0; i < IMG_WIDTH; ++i) {
             for (int j = IMG_HEIGHT - 1; j >= 0; --j) {
@@ -161,17 +169,18 @@ int main(int argc, char** argv) {
 
                 Vec3 direction = rel_viewpoint_pos.normalize();
             
-
                 Vec3 color = RayTrace(w, cameraPos, direction);
 
                 int ir = static_cast<int>(255.999 * color.x);
                 int ig = static_cast<int>(255.999 * color.y);
                 int ib = static_cast<int>(255.999 * color.z);
 
-                std::cout << ir << ' ' << ig << ' ' << ib << '\n';
+                imgout << ir << ' ' << ig << ' ' << ib << '\n';
 
             }
         }
+
+        imgout.close();
     }
 
     for (SceneObject* s : w->objects)
