@@ -5,6 +5,7 @@
 #include "utils.cpp"
 #include "scene.cpp"
 
+#define pi 3.14159265358979323
 // bool RaySphereIntersect(Sphere sphere, Vec3 rayOrigin, Vec3 rayDirection, float* t0, float* t1) {
 
 //     Vec3 vc = rayOrigin - sphere.position;
@@ -68,11 +69,11 @@ Vec3 RayTrace(World* world, Vec3 rayOrigin, Vec3 rayDireciton) {
 
 int main(int argc, char** argv) {
 
-    const int IMG_HEIGHT = 800;
-    const int IMG_WIDTH = 800;
+    const int IMG_HEIGHT = 1200;
+    const int IMG_WIDTH = 1200;
 
     World* w = new World();
-    // Sphere* s = new Sphere(Vec3(-1.5, 0.0, 5.0), 1.0);
+    // Sphere* s = new Sphere(Vec3(5.0, 0.0, 2.0), 2.0);
     // s->color = Vec3(0.0, 1.0, 0.0);
     // w->objects.push_back(s);
 
@@ -80,19 +81,19 @@ int main(int argc, char** argv) {
     // s->color = Vec3(0.0, 0.0, 1.0);
     // w->objects.push_back(s);
 
-    Sphere* gnd = new Sphere(Vec3(-200.0, 0.0, 5.0), 200.0);
+    Sphere* gnd = new Sphere(Vec3(0.0, 0.0, -200.0), 200.0);
     gnd->color = Vec3(1.0, 0.0, 1.0).normalize();
     w->objects.push_back(gnd);
 
     // Where the light is coming from
-    w->lightDirection = Vec3(1.0, -0.5, 0.0).normalize();
+    w->lightDirection = Vec3(0.0, -0.3, -1.0).normalize();
 
     // SceneObject lightSource = SceneObject();
 
     TriMesh* t = new TriMesh();
-    t->verts.push_back(Vec3(-0.5, 0.0, 5.0));
-    t->verts.push_back(Vec3(0.5, 0.5, 5.0));
-    t->verts.push_back(Vec3(0.5, -0.5, 5.0));
+    t->verts.push_back(Vec3(0.0, 0.0, 3.0));
+    t->verts.push_back(Vec3(0.0, 1.5, 0.0));
+    t->verts.push_back(Vec3(0.0, -1.5, 0.0));
     
     t->color = Vec3(1.0, 1.0, 0.0);
 
@@ -112,10 +113,10 @@ int main(int argc, char** argv) {
     else
         N_FRAMES = 1;
 
-    const Quat start_rot = Quat(Vec3::up(), -30.0 * 3.14159 / 180.0);
-    const Quat end_rot = Quat(Vec3::up(), -150.0 * 3.14159 / 180.0); // * Quat(Vec3::forward(), 3.14159);
+    const Quat start_rot = Quat(Vec3::up(), 0.0 * pi / 180.0);
+    const Quat end_rot = Quat(Vec3::up(), 180.0 * pi / 180.0); // * Quat(Vec3::forward(), 3.14159);
     
-    Quat lilRot = Quat(Vec3::up(), 8.0 * (3.14159 / (float) N_FRAMES));
+    Quat lilRot = Quat(Vec3::up(), 8.0 * (pi / (float) N_FRAMES));
 
     const Vec3 start_loc = Vec3(-1.0, 3.0, 1.0);
     // const Vec3 middle_loc = Vec3(-4.0, 0.0, 5.5);
@@ -123,16 +124,23 @@ int main(int argc, char** argv) {
 
     for (int frame = 0; frame < N_FRAMES; ++frame) {
 
-        float frameAlpha = float(frame) / float(N_FRAMES - 1);
+        float frameAlpha = 0.0;
+
+        if (N_FRAMES > 1)
+            frameAlpha = float(frame) / float(N_FRAMES - 1);
 
         // Create the image file for this frame
         sprintf(filename, "./images/image%04d.ppm", frame);
+        // fprintf();
         std::ofstream out(filename); // std::format("./images/image{frame:4d}.ppm"));
-        std::streambuf *coutbuf = std::cout.rdbuf(); //save old buf
+        // std::streambuf *coutbuf = std::cout.rdbuf(); //save old buf
         std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
 
-        Vec3 cameraPos = Vec3(-5.0, 0.0, 0.0); // lerp(start_loc, end_loc, frameAlpha);
-        Quat rot = Quat(Vec3::up(), 0.0); // lerp(start_rot, end_rot, frameAlpha);
+        // Vec3 cameraPos = Vec3(5.0 * sin(pi * frameAlpha), 5.0 * -cos(pi * frameAlpha), 2.0); // lerp(start_loc, end_loc, frameAlpha);
+        // Vec3 cameraPos
+        // Quat rot = Quat(Vec3::up(), 0.0); // lerp(start_rot, end_rot, frameAlpha); 
+        Quat rot = Quat(Vec3::up(), pi * 2.0 * frameAlpha); 
+        Vec3 cameraPos = rot.RotateVector(Vec3(-8.0, 0.0, 2.0));
 
         // w->objects[0]->scale = 1.03 * w->objects[0]->scale;
     
@@ -143,12 +151,12 @@ int main(int argc, char** argv) {
         for (int i = 0; i < IMG_WIDTH; ++i) {
             for (int j = IMG_HEIGHT - 1; j >= 0; --j) {
 
-                float x = -float(i), y = -float(IMG_HEIGHT - j - 1);
+                float y = float(i), z = float(IMG_HEIGHT - j - 1);
 
-                float alphax = x / (float) (IMG_WIDTH - 1);
-                float alphay = y / (float) (IMG_HEIGHT - 1);
+                float alphay = y / (float) (IMG_WIDTH - 1);
+                float alphaz = z / (float) (IMG_HEIGHT - 1);
 
-                Vec3 rel_viewpoint_pos = Vec3(-0.5 + alphax, -0.5 + alphay, focal_length);
+                Vec3 rel_viewpoint_pos = Vec3(focal_length, -0.5 + alphaz, 0.5 - alphay);
                 rel_viewpoint_pos = rot.RotateVector(rel_viewpoint_pos);
 
                 Vec3 direction = rel_viewpoint_pos.normalize();
@@ -165,6 +173,9 @@ int main(int argc, char** argv) {
             }
         }
     }
+
+    for (SceneObject* s : w->objects)
+        delete s;
 
     return 0;
 }

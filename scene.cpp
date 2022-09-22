@@ -60,10 +60,11 @@ public:
             const Vec3 N = v0v1.cross(v0v2).normalize();
 
             float t = (v0 - rayOrigin).dot(N) / rayDirection.dot(N);
-            // if (t >= maxDist || t < minDist) {
-            //     info = RayIntersectInfo();
-            //     return false;
-            // }
+
+            if (t >= maxDist || t < minDist) {
+                info = RayIntersectInfo();
+                return false;
+            }
 
             const Vec3 pt = rayOrigin + rayDirection * t;
 
@@ -80,7 +81,7 @@ public:
             const float gamma = IdetA * detA1;
             const float tau = IdetA * detA2;
 
-            if (beta > 0 && gamma > 0 && tau > 0)  {
+            if (beta >= -0.001 && gamma >= -0.001 && tau >= -0.001)  {
                 
                 info = RayIntersectInfo();
                 info.distance = t;

@@ -93,13 +93,13 @@ public:
     }
 
     inline static Vec3 up() {
-        return Vec3(-1.0, 0.0, 0.0);
+        return Vec3(0.0, 0.0, 1.0);
     }
     inline static Vec3 right() {
         return Vec3(0.0, 1.0, 0.0);
     }
     inline static Vec3 forward() {
-        return Vec3(0.0, 0.0, 1.0);
+        return Vec3(1.0, 0.0, 0.0);
     }
     
     Vec3 cross(Vec3 other) const {
