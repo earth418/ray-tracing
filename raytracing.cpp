@@ -2,34 +2,16 @@
 #include <fstream>
 // #include <string>
 
-#include "utils.cpp"
-#include "scene.cpp"
+#include "utils.h"
+#include "scene.h"
 
 #define pi 3.14159265358979323
-// bool RaySphereIntersect(Sphere sphere, Vec3 rayOrigin, Vec3 rayDirection, float* t0, float* t1) {
-
-//     Vec3 vc = rayOrigin - sphere.position;
-//     float b = 2.0 * rayDirection.dot(vc), 
-//     c = vc.dot(vc) - sphere.radius * sphere.radius;
-
-//     float disc = b * b - 4 * c;
-
-//     if (disc < 0) {
-//         *t0 = INFINITY;
-//         *t1 = INFINITY;
-//         return false;
-//     }
-    
-//     *t0 = (-b - sqrt(disc)) * 0.5;
-//     *t1 = (-b + sqrt(disc)) * 0.5;
-//     return true;
-// }
 
 Vec3 RayTrace(World* world, Vec3 rayOrigin, Vec3 rayDireciton) {
 
-    SceneObject* closest_object{};
     RayIntersectInfo closestIntersect{};
 
+    // First run-through to determine what object it hits
     for (SceneObject* object : world->objects) {
 
         RayIntersectInfo rayInfo{};
@@ -38,33 +20,34 @@ Vec3 RayTrace(World* world, Vec3 rayOrigin, Vec3 rayDireciton) {
 
             if (rayInfo.distance < closestIntersect.distance) {
                 closestIntersect = rayInfo;
-                closest_object = object;
             }
         }
 
     }
 
+    // No hit; return background color
+    if (closestIntersect.distance == INFINITY)
+        return Vec3(0.5);
+
+
+    // Second run-through for shadows (and maybe reflections too idk)
     for (SceneObject* object : world->objects) {
 
         RayIntersectInfo rayInfo{};
 
-        if (closestIntersect.distance != INFINITY && 
-            object != closest_object &&     // IF the object DID intersect, but NOT with the current object 
-            object->RayObjectIntersect(closestIntersect.intersectPoint, -1.0 * world->lightDirection, rayInfo, 0.0001)) {
+        if (object != closestIntersect.closestObj &&     // IF the object DID intersect, but NOT with the current object 
+            object->RayObjectIntersect(
+                closestIntersect.intersectPoint, -1.0 * world->lightDirection, rayInfo, 0.0001)) {
 
             return Vec3(0.0);
         }
 
     }
-    if (closestIntersect.distance == INFINITY)
-        return Vec3(0.5);
-
     
-
     // Vec3 P = rayOrigin + closest_dist * rayDireciton;
     // Vec3 SphereNormal = closest_object.NormalAtPoint(P); // (P - closest_object.position) / closest_object.radius;
     float alpha = (1.0 - world->lightDirection.dot(closestIntersect.planeNormal)) * 0.5;
-    return alpha * closest_object->color;
+    return alpha * closestIntersect.pointColor;
 }
 
 int main(int argc, char** argv) {
@@ -86,20 +69,18 @@ int main(int argc, char** argv) {
     w->objects.push_back(gnd);
 
     // Where the light is coming from
-    w->lightDirection = Vec3(0.0, -0.3, -1.0).normalize();
+    w->lightDirection = Vec3(0.0, 0.0, -1.0).normalize();
 
     // SceneObject lightSource = SceneObject();
 
     TriMesh* t = new TriMesh("../cube.obj");
-    t->position = Vec3(3.0, 0.0, 1.0);
+    
+    t->position = Vec3(0.0, 0.0, 2.0);
 
     // t->verts.push_back(Vec3(0.0, 0.0, 0.0));
     // t->verts.push_back(Vec3(0.0, 3.0, 0.0));
     // t->verts.push_back(Vec3(0.0, 0.0, 3.0));
     // t->verts.push_back(Vec3(0.0, 3.0, 3.0));
-
-    // t->verts.push_back(Vec3(0.0, 1.5, 0.0));
-    // t->verts.push_back(Vec3(0.0, -1.5, 0.0));
 
     t->color = Vec3(1.0, 1.0, 0.0);
 
@@ -108,12 +89,8 @@ int main(int argc, char** argv) {
 
     w->objects.push_back(t);
 
-
-    // const Vec3 viewport_lower_left = Vec3(-0.5, -0.5, 1.0);
-    // const Vec3 viewport_upper_right = Vec3(0.5, 0.5, 1.0);
-
     char filename[23];
-    const float focal_length = 0.75;
+    const float focal_length = 1.0;
 
     int N_FRAMES;
     if (argc == 2)
@@ -126,9 +103,9 @@ int main(int argc, char** argv) {
     
     Quat lilRot = Quat(Vec3::up(), 8.0 * (pi / (float) N_FRAMES));
 
-    const Vec3 start_loc = Vec3(-1.0, 3.0, 1.0);
+    // const Vec3 start_loc = Vec3(-1.0, 3.0, 1.0);
     // const Vec3 middle_loc = Vec3(-4.0, 0.0, 5.5);
-    const Vec3 end_loc = Vec3(-1.0, 3.0, 11.0);
+    // const Vec3 end_loc = Vec3(-1.0, 3.0, 11.0);
 
     for (int frame = 0; frame < N_FRAMES; ++frame) {
 
