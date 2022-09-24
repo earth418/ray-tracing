@@ -55,6 +55,10 @@ public:
         return Vec3(other * x, other * y, other * z);
     }
 
+    Vec3 operator/(Vec3 other) const {
+        return Vec3(x / other.x, y / other.y, z / other.z);
+    }
+
     Vec3 operator/(float other) const {
         return Vec3(x / other, y / other, z / other);
     }

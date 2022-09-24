@@ -24,7 +24,7 @@ class SceneObject {
 public:
 
     SceneObject()
-    : position(Vec3()), scale(Vec3())
+    : position(Vec3()), scale(Vec3(1.0))
     {}
 
     SceneObject(Vec3 _pos, Vec3 _scale)
@@ -49,7 +49,9 @@ public:
 class TriMesh : public SceneObject {
 
 public:
-    TriMesh() {}
+    TriMesh() 
+    : SceneObject()
+    {}
 
     // Must be a .OBJ file
     TriMesh(const char* filename);

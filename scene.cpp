@@ -78,6 +78,10 @@ float minDist, float maxDist)
     info = RayIntersectInfo();
     info.distance = INFINITY;
 
+    rayDirection = rayDirection / scale;
+    // rayDirection = rotation.RotateVector(rayDirection);
+    rayOrigin = rayOrigin - position;
+
     for (int i = 0; i < tris.size(); ++i) {
         const TriangleInfo tri = tris[i];
 
@@ -101,8 +105,12 @@ float minDist, float maxDist)
         // }
 
         const Mat3x3 A = Mat3x3(v0v1, v0v2, rayDirection);
-        const float IdetA = 1.0 / A.det();
+        const float detA = A.det();
+        if (A.det() == 0.0)
+            continue;
 
+        const float IdetA = 1.0 / A.det();
+        
         const Vec3 b = v0 - rayOrigin;
 
         const float detA0 = Mat3x3(b, v0v2, rayDirection).det();
@@ -128,8 +136,7 @@ float minDist, float maxDist)
             info.intersectPoint = rayOrigin + t * rayDirection;
             info.planeNormal = N;
             info.closestObj = this;
-            info.pointColor = Vec3(float(i) / float(tris.size())); // this->color;
-            
+            info.pointColor = this->color; // Vec3(float(i) / float(tris.size())); // this->color;
         }
 
     }
@@ -157,14 +164,11 @@ float minDist, float maxDist) {
 
     if (disc < 0) {
         info = RayIntersectInfo();
-        return false; // {INFINITY, Vec3(0.0), Vec3(0.0)};
+        return false;
     }
     
     float r0 = (-b - sqrt(disc)) * 0.5;
     float r1 = (-b + sqrt(disc)) * 0.5;
-
-    
-    // std::cout << r0 << ' ' << r1 << '\n';
 
     if (r0 < minDist) {
         if (r1 < minDist) {
@@ -178,12 +182,10 @@ float minDist, float maxDist) {
     if (r1 < 1.0)
         r1 = maxDist; // Force other collision point
 
-
     if (r1 >= maxDist && r0 >= maxDist) {
         info = RayIntersectInfo();
         return false;
     }
-
 
     info = RayIntersectInfo();
     info.distance = (r0 < r1) ? r0 : r1;

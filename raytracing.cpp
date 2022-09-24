@@ -27,7 +27,7 @@ Vec3 RayTrace(World* world, Vec3 rayOrigin, Vec3 rayDireciton) {
 
     // No hit; return background color
     if (closestIntersect.distance == INFINITY)
-        return Vec3(0.5);
+        return Vec3(0.3, 0.4, 0.7);
 
 
     // Second run-through for shadows (and maybe reflections too idk)
@@ -64,8 +64,8 @@ int main(int argc, char** argv) {
     // s->color = Vec3(0.0, 0.0, 1.0);
     // w->objects.push_back(s);
 
-    Sphere* gnd = new Sphere(Vec3(0.0, 0.0, -200.0), 200.0);
-    gnd->color = Vec3(1.0, 0.0, 1.0).normalize();
+    Sphere* gnd = new Sphere(Vec3(0.0, 0.0, -500.0), 500.0);
+    gnd->color = Vec3(0.5, 0.0, 0.5).normalize();
     w->objects.push_back(gnd);
 
     // Where the light is coming from
@@ -73,24 +73,30 @@ int main(int argc, char** argv) {
 
     // SceneObject lightSource = SceneObject();
 
-    TriMesh* t = new TriMesh("../cube.obj");
+    // TriMesh* t = new TriMesh("../cube.obj");
+    TriMesh* t = new TriMesh();
     
-    t->position = Vec3(0.0, 0.0, 2.0);
+    t->position = Vec3(0.0, -1.5, 0.0);
+    t->scale = Vec3(0.1, 1.0, 5.0);
 
-    // t->verts.push_back(Vec3(0.0, 0.0, 0.0));
-    // t->verts.push_back(Vec3(0.0, 3.0, 0.0));
-    // t->verts.push_back(Vec3(0.0, 0.0, 3.0));
-    // t->verts.push_back(Vec3(0.0, 3.0, 3.0));
+    t->verts.push_back(Vec3(0.0, 0.0, 0.0));
+    t->verts.push_back(Vec3(0.0, 3.0, 0.0));
+    t->verts.push_back(Vec3(0.0, 0.0, 3.0));
+    t->verts.push_back(Vec3(0.0, 3.0, 3.0));
 
     t->color = Vec3(1.0, 1.0, 0.0);
 
-    // t->tris.push_back(TriangleInfo(2, 1, 0));
-    // t->tris.push_back(TriangleInfo(2, 3, 1));
+    t->tris.push_back(TriangleInfo(2, 1, 0));
+    t->tris.push_back(TriangleInfo(2, 3, 1));
 
     w->objects.push_back(t);
 
+    // for (Vec3 v : t->verts) {
+    //     w->objects.push_back(new Sphere(v + t->position, 0.25));
+    // }
+
     char filename[23];
-    const float focal_length = 1.0;
+    const float focal_length = 0.5;
 
     int N_FRAMES;
     if (argc == 2)
