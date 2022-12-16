@@ -3,6 +3,8 @@
 #include <vector>
 #include <cmath>
 
+#define max(a, b) ((a) > (b)) ? (a) : (b)
+
 template<class T>
 T lerp(T a, T b, float alpha) {
     return a + (b - a) * alpha;
@@ -124,6 +126,10 @@ struct Quat {
     Quat(Vec3 vec, float angle);
 
     Quat(Vec3 vec);
+
+    Vec3 toVec() {
+        return Vec3(x, y, z).normalize();
+    }
 
     // Computes the Hamiltonian 
     // product of two Quats

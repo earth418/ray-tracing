@@ -1,5 +1,3 @@
-#pragma once
-
 #include "utils.h"
 
 // #define min(x, y) (x) > (y) ? (y) : (x)

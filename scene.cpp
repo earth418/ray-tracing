@@ -1,9 +1,9 @@
-
 #include "scene.h"
 
 
 RayIntersectInfo::RayIntersectInfo() {
     distance = INFINITY;
+    hitObj = NULL;
     intersectPoint = Vec3(0.0), planeNormal = Vec3(0.0), pointColor = Vec3(0.0, 0.0, 0.0);
 }
 
@@ -78,7 +78,7 @@ float minDist, float maxDist)
     info = RayIntersectInfo();
     info.distance = INFINITY;
 
-    rayDirection = rayDirection / scale;
+    // rayDirection = rayDirection / scale;
     // rayDirection = rotation.RotateVector(rayDirection);
     rayOrigin = rayOrigin - position;
 
@@ -135,7 +135,7 @@ float minDist, float maxDist)
             info.distance = t;
             info.intersectPoint = rayOrigin + t * rayDirection;
             info.planeNormal = N;
-            info.closestObj = this;
+            info.hitObj = this;
             info.pointColor = this->color; // Vec3(float(i) / float(tris.size())); // this->color;
         }
 
@@ -191,7 +191,7 @@ float minDist, float maxDist) {
     info.distance = (r0 < r1) ? r0 : r1;
     info.intersectPoint = rayOrigin + info.distance * rayDirection;
     info.planeNormal = (info.intersectPoint - position) / radius;
-    info.closestObj = this;
+    info.hitObj = this;
     info.pointColor = this->color;
     return true;
 }

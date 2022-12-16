@@ -13,7 +13,7 @@ struct RayIntersectInfo {
     RayIntersectInfo();
 
     float distance;
-    SceneObject* closestObj;
+    SceneObject* hitObj;
     Vec3 intersectPoint;
     Vec3 pointColor;
     Vec3 planeNormal;
@@ -42,6 +42,8 @@ public:
     Quat rotation;
 
     Vec3 color;
+
+    bool castShadow = true;
 };
 
 
@@ -90,14 +92,71 @@ public:
 };
 
 
-class LightSource : public Sphere {
+
+class LightSource {
     
 public:
+
+    Vec3 position;
+    Vec3 color;
+
+    LightSource()
+    : intensity(0.0)
+    {
+        color = Vec3(1.0, 1.0, 1.0);
+    }
+
     LightSource(float iintensity) 
     : intensity(iintensity)
-    {}
+    {
+    }
 
+public:
     float intensity;
+
+    virtual Vec3 getDirection(Vec3 pointPosition) const = 0;
+
+    virtual float calculateIntensity(Vec3 pointNormal, Vec3 pointPosition) = 0;
+};
+
+class PointLight : public LightSource {
+    
+    
+    Vec3 getDirection(Vec3 pointPosition) const override
+    {
+        return (pointPosition - position).normalize();
+    }
+
+    float calculateIntensity(Vec3 pointNormal, Vec3 pointPosition) override {
+        Vec3 ld = pointPosition - position;
+        return max(0.0, 0.0 - pointNormal.dot(ld.normalize())) * intensity; // / ld.sqrLength();
+    }
+};
+
+class DirectionalLight : public LightSource {
+
+public:
+    Vec3 direction;
+
+    DirectionalLight()
+    : LightSource()
+    {
+    }
+
+    DirectionalLight(Vec3 idirection, float iintensity) 
+    : direction(idirection)
+    {
+        intensity = iintensity;
+    }
+
+    Vec3 getDirection(Vec3 pointPosition) const override
+    {
+        return direction;
+    }
+
+    float calculateIntensity(Vec3 pointNormal, Vec3 pointPosition) override {
+        return max(0.0, -pointNormal.dot(direction)) * intensity;
+    }
 
 };
 
@@ -105,6 +164,8 @@ class World {
 public:
     std::vector<SceneObject*> objects;
 
-    Vec3 lightDirection;
+    std::vector<LightSource*> lights;
+
+    // Vec3 lightDirection;
 
 };
